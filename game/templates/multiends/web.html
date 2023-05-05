@@ -1,16 +1,21 @@
 {% load static %}
+<!-- Django 中引入全局setting里的变量 static 的语法-->
+
 <head>
     <link rel="stylesheet" href="https://cdn.acwing.com/static/jquery-ui-dist/jquery-ui.min.css">
     <script src="https://cdn.acwing.com/static/jquery/js/jquery-3.3.1.min.js"></script>
+    <!-- 上述两句引入 jQuery 库 -->
+    <!-- 使用引入的变量 static 的语法如下 -->
     <link rel="stylesheet" href="{% static 'css/game.css' %}">
     <script src="{% static 'js/dist/game.js' %}"></script>
+    <!-- 分别引入 css 文件和总的 js 文件 -->
 </head>
 
 <body style="margin: 0">
-    <div id="ac_game_123456578"></div>
+    <div id="ac_game_12345678"></div>
     <script>
-        $(document).ready(function(){
-            let ac_game = AcGame();
+        $(document).ready(function () {
+            let ac_game = new AcGame("ac_game_12345678")
         })
     </script>
 </body>

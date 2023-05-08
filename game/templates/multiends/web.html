@@ -7,13 +7,14 @@
     <!-- 上述两句引入 jQuery 库 -->
     <!-- 使用引入的变量 static 的语法如下 -->
     <link rel="stylesheet" href="{% static 'css/game.css' %}">
-    <script src="{% static 'js/dist/game.js' %}"></script>
     <!-- 分别引入 css 文件和总的 js 文件 -->
+    <!-- 为了避免引入的类是全局的，这里删去了.js，放在了下面import -->
 </head>
 
 <body style="margin: 0">
     <div id="ac_game_12345678"></div>
-    <script>
+    <script type="module">
+        import { AcGame } from "{% static 'js/dist/game.js' %}";
         $(document).ready(function () {
             let ac_game = new AcGame("ac_game_12345678")
         })

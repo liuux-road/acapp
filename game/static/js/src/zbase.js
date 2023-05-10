@@ -5,6 +5,9 @@ export class AcGame {
 
         this.AcWingOS = AcWingOS;   //如果是acapp端，该变量就会带着一系列y总提供的接口
 
+        // 先new一个登录界面
+        this.settings = new Settings(this);
+
         // 在写游戏界面时，先把这里注释掉，方便查看结果
         this.menu = new AcGameMenu(this);
 

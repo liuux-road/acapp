@@ -16,6 +16,8 @@ class AcGameMenu {
     </div>
 </div>
 `);
+        // 先不直接显示menu，而是登陆成功在显示menu
+        this.$menu.hide();
         this.root.$ac_game.append(this.$menu);
         this.$single_mode = this.$menu.find('.ac-game-menu-field-item-single-mode');
         this.$multi_mode = this.$menu.find('.ac-game-menu-field-item-multi-mode');
@@ -31,6 +33,10 @@ class AcGameMenu {
         this.$single_mode.click(function () {
             outer.hide();   // 关闭主页面
             outer.root.playground.show();   // 打开游戏界面
+        });
+
+        this.$settings_mode.click(function() {
+            outer.root.settings.logout_on_remote();
         });
     }
 

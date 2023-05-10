@@ -22,6 +22,13 @@ class Player extends AcGameObject {
         this.friction = 0.9; // 为了让碰撞后，刚开始很慢，逐渐恢复速度
         this.spent_time = 0; // 初始人机攻击冷却时间
 
+
+        // 对于玩家，有头像这个属性
+        if (this.is_me) {
+            this.img = new Image();
+            this.img.src = this.playground.root.settings.photo;
+        }
+
     }
 
     start() {
@@ -155,12 +162,26 @@ class Player extends AcGameObject {
 
 
     render(){
+        if (this.is_me) {
 
-        // 渲染一个圆
-        this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
-        this.ctx.fillStyle = this.color;
-        this.ctx.fill();
+            // 这是玩家，渲染头像
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.stroke();
+            this.ctx.clip();
+            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, 
+                               this.radius * 2, this.radius * 2);
+            this.ctx.restore();
+        } 
+        else {
+
+            // 这是人机，渲染一个圆
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+            this.ctx.fillStyle = this.color;
+            this.ctx.fill();
+        }
     }
 
 

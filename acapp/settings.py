@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wx-rt=j66hmpy6%yz&e(y50e7dyi3x%z9-y)b1z#bk(1=7i7ey
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["47.120.42.98", "app5427.acapp.acwing.com.cn"]
+ALLOWED_HOSTS = ["47.120.42.98", "www.liuux.top", "app5427.acapp.acwing.com.cn"]
 
 
 # Application definition

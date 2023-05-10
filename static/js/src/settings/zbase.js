@@ -7,6 +7,7 @@ class Settings {
         this.username = "";
         this.photo = "";
 
+
         this.$settings = $(`
 <div class="ac-game-settings">
     <div class="ac-game-settings-login">
@@ -99,6 +100,9 @@ class Settings {
         this.$register_login = this.$register.find(".ac-game-settings-option");
         this.$register.hide(); // 默认关闭
 
+        
+        this.$acwing_login = this.$settings.find('.ac-game-settings-acwing img'); 
+
         this.root.$ac_game.append(this.$settings);
 
         this.start();
@@ -111,8 +115,14 @@ class Settings {
     }
 
     add_listening_events() {    // 监听触发了什么事件
+        let outer = this;
         this.add_listening_events_login();
         this.add_listening_events_register();
+
+        // 申请授权码code
+        this.$acwing_login.click(function() {
+            outer.acwing_login();
+        });
     }
     add_listening_events_login() {   //跳到注册界面
         let outer = this;
@@ -132,6 +142,21 @@ class Settings {
             outer.register_on_remote();
         });
     }
+
+
+    // 申请授权码code
+    acwing_login() {
+        $.ajax({
+            url: "https://app5427.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
+            type: "GET",
+            success: function(resp) {
+                console.log(resp);
+                if (resp.result === "success") {
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
+        })
+    } 
 
     register() {    //打开注册界面
         this.$login.hide();
@@ -214,7 +239,21 @@ class Settings {
                     outer.$register_error_message.html(resp.result);
                 }
             }
-        })
+        });
+    }
+
+    logout_on_remote() {     //在远程服务器上登出
+        if (this.platform === "ACAPP") return false;
+        $.ajax({
+            url: "https://app5427.acapp.acwing.com.cn/settings/logout/",
+            type: "GET",
+            success: function(resp) {
+                console.log(resp);
+                if (resp.result === "success") {
+                    location.reload();
+                }
+            }
+        });
     }
     
 

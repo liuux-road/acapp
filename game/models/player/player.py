@@ -9,6 +9,10 @@ class Player(models.Model): # Player 类继承自 Model 类
     photo = models.URLField(max_length=256, blank=True)
     # 用于存储用户的头像的url
 
+    # 为了实现一键登录，需要额外存储一个 openid 来标识每一个 Player 绑定的 AcWing 账号
+    openid = models.CharField(default="", max_length=256, blank=True, null=True)
+
+
     # 指定每个player数据展示在前台的数据
     def __str__(self):
         return str(self.user)    # 展示用户的用户名

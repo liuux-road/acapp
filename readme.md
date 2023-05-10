@@ -30,3 +30,8 @@ elif platform == "WEB":
 23/5/9完成
 完成：登陆注册页面、登陆注册功能
 2023/5/10
+##### 6.2 Web端AcWing一键登录
+* 第一步 申请授权码code(settings/zbash.js中调用apply_code)
+* 第二步 申请授权令牌access_token和用户的openid（上一步信息反馈到receive_code中，并申请授权和用户id）
+* 第三步 申请用户信息（receive_code中，申请授权得到用户信息）
+over   2023/5/10

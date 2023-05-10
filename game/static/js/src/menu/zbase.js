@@ -11,7 +11,7 @@ class AcGameMenu {
             多人模式
         </div>
         <div class="ac-game-menu-field-item ac-game-menu-field-item-settings-mode">
-            设置
+            退出
         </div>
     </div>
 </div>
@@ -33,6 +33,11 @@ class AcGameMenu {
         this.$single_mode.click(function () {
             outer.hide();   // 关闭主页面
             outer.root.playground.show();   // 打开游戏界面
+        });
+
+        this.$multi_mode.click(function () {
+            // outer.hide();   // 关闭主页面
+            // outer.root.playground.show();   // 打开游戏界面
         });
 
         this.$settings_mode.click(function() {

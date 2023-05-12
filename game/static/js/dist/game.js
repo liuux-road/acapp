@@ -643,45 +643,50 @@ class Settings {
         this.$register_login = this.$register.find(".ac-game-settings-option");
         this.$register.hide(); // 默认关闭
 
-        
-        this.$acwing_login = this.$settings.find('.ac-game-settings-acwing img'); 
+
+        this.$acwing_login = this.$settings.find('.ac-game-settings-acwing img');
 
         this.root.$ac_game.append(this.$settings);
 
         this.start();
     }
     start() {
-        // 从服务器端获取信息
-        this.getinfo();
-        // 监听触发了什么事件
-        this.add_listening_events();
+        // 判断当前端口，acapp直接获取账号信息，web获取账号信息同时绘制登陆端口
+        if (this.platform === "ACAPP") {
+            this.getinfo_acapp();
+        }
+        else {
+            // 从服务器端获取信息
+            this.getinfo_web();
+            // 监听触发了什么事件
+            this.add_listening_events();
+        }
     }
-
     add_listening_events() {    // 监听触发了什么事件
         let outer = this;
         this.add_listening_events_login();
         this.add_listening_events_register();
 
         // 申请授权码code
-        this.$acwing_login.click(function() {
+        this.$acwing_login.click(function () {
             outer.acwing_login();
         });
     }
     add_listening_events_login() {   //跳到注册界面
         let outer = this;
-        this.$login_register.click(function() {
+        this.$login_register.click(function () {
             outer.register();
         });
-        this.$login_submit.click(function() {
+        this.$login_submit.click(function () {
             outer.login_on_remote();
         });
     }
     add_listening_events_register() {      //跳到登录界面
         let outer = this;
-        this.$register_login.click(function() {
+        this.$register_login.click(function () {
             outer.login();
         })
-        this.$register_submit.click(function() {
+        this.$register_submit.click(function () {
             outer.register_on_remote();
         });
     }
@@ -692,14 +697,14 @@ class Settings {
         $.ajax({
             url: "https://app5427.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
             type: "GET",
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
                 if (resp.result === "success") {
                     window.location.replace(resp.apply_code_url);
                 }
             }
         })
-    } 
+    }
 
     register() {    //打开注册界面
         this.$login.hide();
@@ -710,8 +715,46 @@ class Settings {
         this.$login.show();
     }
 
-    // 从服务器端获取信息
-    getinfo() {
+    // acapp 申请授权
+    acapp_login(appid, redirect_uri, scope, state) {
+        let outer = this;
+        // 这里调用acapp的API，简单修改一下参数
+        // AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, callback);
+        // 这里写的回调函数是自己的resp.redirect_urreceive_codei的返回值，resp.redirect_uri在apply_code文件中写的，实际就是receive_code，我们实现的是返回用户名和头像
+        this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function(resp) {
+            console.log(resp);
+            if (resp.result === "success") {
+                // 获取到登陆账号的用户名和头像
+                outer.username = resp.username;
+                outer.photo = resp.photo;
+
+                //登录成功，关闭登录界面，打开主菜单
+                outer.hide();
+                outer.root.menu.show();
+            }
+            // else {
+            //     outer.login();
+            // }
+        });
+    }
+
+    // 从acapp服务器端获取信息
+    getinfo_acapp() {
+        let outer = this;
+        $.ajax({
+            url: "https://app5427.acapp.acwing.com.cn/settings/acwing/acapp/apply_code/",
+            type: "GET",
+            success: function (resp) {
+                if (resp.result === "success") {
+                    outer.acapp_login(resp.appid, resp.redirect_uri, resp.scope, resp.state);
+                }
+            }
+        });
+    }
+
+
+    // 从web服务器端获取信息
+    getinfo_web() {
         let outer = this;
         $.ajax({
             url: "https://app5427.acapp.acwing.com.cn/settings/getinfo/",
@@ -719,13 +762,13 @@ class Settings {
             data: {
                 platform: outer.platform,
             },
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
-                if (resp.result === "success") {    
+                if (resp.result === "success") {
                     // 获取到登陆账号的用户名和头像
                     outer.username = resp.username;
                     outer.photo = resp.photo;
-                    
+
                     //登录成功，关闭登录界面，打开主菜单
                     outer.hide();
                     outer.root.menu.show();
@@ -748,7 +791,7 @@ class Settings {
                 username: username,
                 password: password,
             },
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
                 if (resp.result === "success") {
                     location.reload();
@@ -765,7 +808,7 @@ class Settings {
         let password = this.$register_password.val();
         let password_confirm = this.$register_password_confirm.val();
         this.$register_error_message.empty();
-    
+
         $.ajax({
             url: "https://app5427.acapp.acwing.com.cn/settings/register/",
             type: "GET",
@@ -774,7 +817,7 @@ class Settings {
                 password: password,
                 password_confirm: password_confirm,
             },
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
                 if (resp.result === "success") {
                     location.reload();
@@ -790,7 +833,7 @@ class Settings {
         $.ajax({
             url: "https://app5427.acapp.acwing.com.cn/settings/logout/",
             type: "GET",
-            success: function(resp) {
+            success: function (resp) {
                 console.log(resp);
                 if (resp.result === "success") {
                     location.reload();
@@ -798,7 +841,7 @@ class Settings {
             }
         });
     }
-    
+
 
     hide() {
         this.$settings.hide();

@@ -35,3 +35,9 @@ elif platform == "WEB":
 * 第二步 申请授权令牌access_token和用户的openid（上一步信息反馈到receive_code中，并申请授权和用户id）
 * 第三步 申请用户信息（receive_code中，申请授权得到用户信息）
 over   2023/5/10
+##### 6.3 AcAPP端AcWing一键登录
+1. acapp端注册功能函数：`js/src/settings/zbase.js`
+2. 申请授权：`views/settings/acwing/acapp/apply_code.py`
+3. 接收账号信息：`views/settings/acwing/acapp/receive_code.py`
+4. 添加路由信息：`urls/settings/acwing/index.py`
+over   2023/5/12（11号上午组会，下午上课，晚上聚餐，鸽了一天）

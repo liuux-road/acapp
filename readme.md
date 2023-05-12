@@ -41,3 +41,15 @@ over   2023/5/10
 3. 接收账号信息：`views/settings/acwing/acapp/receive_code.py`
 4. 添加路由信息：`urls/settings/acwing/index.py`
 over   2023/5/12（11号上午组会，下午上课，晚上聚餐，鸽了一天）
+### 7. 实现连接对战
+1. 统一长度单位<br>
+地图 16:9 等比例缩放`js/src/playground/zbase.js`;`js/src/playground/game_map/zbase.js`;`css/game.css`;`js/src/playground/game_map/zbase.js`<br>
+玩家 Player 缩放渲染`js/src/playground/zbase.js`;`js/src/playground/player/zbase.js`;<br>
+火球 Fireball 缩放渲染`js/src/playground/skill/fireball/zbase.js`<br>
+粒子 particle 缩放渲染`js/src/playground/particle/zbase.js`<br>
+2023/5/12 over<br>
+问题：可能是浏览器刷新不彻底，导致缩放的小球一直不显示出来；另外有一个bug就是刚开始时候幕布不是16：9，会导致小球跑出画面外<br>
+2. 增加“联机对战”模式
+3. 配置django_channels
+4. 编写同步函数
+

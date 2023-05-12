@@ -7,6 +7,8 @@ class AcGameObject {
         this.has_called_start = false;
         // 当前距离上一帧的时间间隔,下面还要记录一下下一帧的时间间隔
         this.timedelta = 0;
+
+        
     }
 
     // 第一帧执行一次

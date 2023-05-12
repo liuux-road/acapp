@@ -32,12 +32,12 @@ class AcGameMenu {
         let outer = this;
         this.$single_mode.click(function () {
             outer.hide();   // 关闭主页面
-            outer.root.playground.show();   // 打开游戏界面
+            outer.root.playground.show("single mode");   // 打开游戏界面
         });
 
         this.$multi_mode.click(function () {
-            // outer.hide();   // 关闭主页面
-            // outer.root.playground.show();   // 打开游戏界面
+            outer.hide();   // 关闭主页面
+            outer.root.playground.show("multi mode");   // 打开游戏界面
         });
 
         this.$settings_mode.click(function() {

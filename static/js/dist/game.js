@@ -32,12 +32,12 @@ class AcGameMenu {
         let outer = this;
         this.$single_mode.click(function () {
             outer.hide();   // 关闭主页面
-            outer.root.playground.show();   // 打开游戏界面
+            outer.root.playground.show("single mode");   // 打开游戏界面
         });
 
         this.$multi_mode.click(function () {
-            // outer.hide();   // 关闭主页面
-            // outer.root.playground.show();   // 打开游戏界面
+            outer.hide();   // 关闭主页面
+            outer.root.playground.show("multi mode");   // 打开游戏界面
         });
 
         this.$settings_mode.click(function() {
@@ -194,7 +194,7 @@ class Particle extends AcGameObject {
     }
 
 }class Player extends AcGameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -209,26 +209,22 @@ class Particle extends AcGameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
-        // 记录当前释放的技能
-        this.cur_skill = null;
-        // 用于浮点数计算
-        this.eps = 0.01;
+        this.character = character;
+        this.username = username;
+        this.photo = photo;
+        this.cur_skill = null; // 记录当前释放的技能
+        this.eps = 0.01; // 用于浮点数计算
         this.friction = 0.9; // 为了让碰撞后，刚开始很慢，逐渐恢复速度
         this.spent_time = 0; // 初始人机攻击冷却时间
-
-
-        // 对于玩家，有头像这个属性
-        if (this.is_me) {
+        if (this.character !== "robot") { // 对于玩家和敌人，有头像这个属性
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
-
     }
 
     start() {
         // 如果是自己就加一个监听函数
-        if (this.is_me) {
+        if (this.character === "me") {
             this.add_listening_events();
         }
         // 如果是人机模式，让人机移动去随机位置
@@ -315,7 +311,7 @@ class Particle extends AcGameObject {
 
         // 人机随机发射炮弹
         this.spent_time += this.timedelta / 1000;
-        if (!this.is_me && this.spent_time > 4 && Math.random() * 180 < 1) {
+        if (this.character === "robot" && this.spent_time > 4 && Math.random() * 180 < 1) {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             this.shoot_fireball(player.x, player.y);
         }
@@ -335,7 +331,7 @@ class Particle extends AcGameObject {
                 this.vx = 0;
                 this.vy = 0;
                 // 如果是人机，让它继续移动
-                if (!this.is_me) {
+                if (this.character === "robot") {
                     let tx = Math.random() * this.playground.width / this.playground.scale;
                     let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
@@ -363,17 +359,19 @@ class Particle extends AcGameObject {
     render(){
         let scale = this.playground.scale;
 
-        if (this.is_me) {
+        if (this.character !== "robot") {
 
-            // 这是玩家，渲染头像
+            // 这是玩家或敌人，渲染头像
             this.ctx.save();
             this.ctx.beginPath();
             this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
+            // console.log(this.img);
             this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, 
                                this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
+
         } 
         else {
 
@@ -561,26 +559,32 @@ class AcGamePlayground {
     }
 
 	// 这个show的生效位置是在menu/zbase.js里面的，选择单人游戏后进入游戏界面
-	show() {    
+	show(mode) {    
 		//打开 playground 界面
 		this.$playground.show();
 		// 刚打开界面时，需要resize一遍
-		this.resize();
+		// this.resize();
 		// 把画布大小存下来
 		this.width = this.$playground.width();
 		this.height = this.$playground.height();
 		// 把地图创建出来
 		this.game_map = new GameMap(this);
+		// 刚打开界面时，需要resize一遍 ，在game_map后面resize，把画布一起resize
+		this.resize();
 		// 把玩家创建出来
 		this.players = [];
-		this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, true));
+		this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo));
 		// console.log("create player");
 
-
-		//创建好 5 个人机
-		for (let i = 0; i < 5; i ++ ) {
-			this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, false));
-			// console.log("create robot", i);
+		if (mode === "single mode") {
+			//创建好 5 个人机
+			for (let i = 0; i < 5; i ++ ) {
+				this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, "robot"));
+				// console.log("create robot", i);
+			}
+		}
+		else if (mode === "multi mode") {
+			
 		}
 
 

@@ -44,26 +44,32 @@ class AcGamePlayground {
     }
 
 	// 这个show的生效位置是在menu/zbase.js里面的，选择单人游戏后进入游戏界面
-	show() {    
+	show(mode) {    
 		//打开 playground 界面
 		this.$playground.show();
 		// 刚打开界面时，需要resize一遍
-		this.resize();
+		// this.resize();
 		// 把画布大小存下来
 		this.width = this.$playground.width();
 		this.height = this.$playground.height();
 		// 把地图创建出来
 		this.game_map = new GameMap(this);
+		// 刚打开界面时，需要resize一遍 ，在game_map后面resize，把画布一起resize
+		this.resize();
 		// 把玩家创建出来
 		this.players = [];
-		this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, true));
+		this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo));
 		// console.log("create player");
 
-
-		//创建好 5 个人机
-		for (let i = 0; i < 5; i ++ ) {
-			this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, false));
-			// console.log("create robot", i);
+		if (mode === "single mode") {
+			//创建好 5 个人机
+			for (let i = 0; i < 5; i ++ ) {
+				this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, "robot"));
+				// console.log("create robot", i);
+			}
+		}
+		else if (mode === "multi mode") {
+			
 		}
 
 

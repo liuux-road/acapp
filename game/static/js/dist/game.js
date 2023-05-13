@@ -53,37 +53,29 @@ class AcGameMenu {
     }
 }
 let AC_GAME_OBJECTS = [];
-
 class AcGameObject {
     constructor() {
         AC_GAME_OBJECTS.push(this);
-        // 标记一下有没有执行过start函数
-        this.has_called_start = false;
-        // 当前距离上一帧的时间间隔,下面还要记录一下下一帧的时间间隔
-        this.timedelta = 0;
-
-        
+        this.has_called_start = false;  // 标记一下有没有执行过start函数
+        this.timedelta = 0;  // 当前距离上一帧的时间间隔,下面还要记录一下下一帧的时间间隔
+        this.uuid = this.create_uuid();  // 为了练联机对战，每个人创建一个随机编号
     }
-
-    // 第一帧执行一次
-    start() {
-
+    create_uuid() {  // 创建唯一编号
+        let res = "";
+        for (let i = 0; i < 8; i ++ ) {
+            let x = parseInt(Math.floor(Math.random() * 10));   //[0, 10)
+            res += x;
+        }
+        return res;
     }
-
-    // 每一帧均会执行一次
-    update() {
-
+    start() {  // 第一帧执行一次
     }
-
-    // 在被销毁前执行一次
-    on_destroy() {
-
+    update() {  // 每一帧均会执行一次
     }
-
-    // 删掉该物体时执行一次
-    destroy() {
+    on_destroy() {  // 在被销毁前执行一次
+    }
+    destroy() {  // 删掉该物体时执行一次
         this.on_destroy();
-
         for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
             if (AC_GAME_OBJECTS[i] === this) {
                 AC_GAME_OBJECTS.splice(i, 1);
@@ -195,6 +187,9 @@ class Particle extends AcGameObject {
 
 }class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
+
+        console.log(character, username, photo);
+
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -228,7 +223,7 @@ class Particle extends AcGameObject {
             this.add_listening_events();
         }
         // 如果是人机模式，让人机移动去随机位置
-        else {
+        else if (this.character === "robot") {
             let tx = Math.random() * this.playground.width / this.playground.scale;
             let ty = Math.random() * this.playground.height / this.playground.scale;
             this.move_to(tx, ty);
@@ -520,114 +515,89 @@ class MultiPlayerSocket {
         this.start();
     }
     start() {
+        this.receive();
     }
-
-    send_create_player() {
+    send_create_player(username, photo) {  // 广播，我这里创建了一个角色，发送角色uuid。进入多人游戏时调用这个函数
+        let outer = this;
         this.ws.send(JSON.stringify({
-            'message': 'hello acapp server',
+            'event': 'create_player',
+            'uuid': outer.uuid,  // uuid是自己生成的
+            'username': username,  // username需要手动传
+            'photo': photo,  // photo需要手动传
         }));
     }
-    
-    receive_create_player() {
+    receive() {  // 从前端接收信息。等待接收信息，并判断怎么执行
+        let outer = this;
+        this.ws.onmessage = function(e) {
+            let data = JSON.parse(e.data);  // 将收到的JSON还原成字典格式，再处理
+            let uuid = data.uuid;
+            if (uuid === outer.uuid) return false;  // 如果是自己发的消息，不接收
+            let event = data.event;
+            if (event === "create_player") {  
+                outer.receive_create_player(uuid, data.username, data.photo);  // 有用户创建了角色，调用函数
+            }
+        };
+    }
+    receive_create_player(uuid, username, photo) {  // 接收广播信息-有新角色加入，创建
+        let player = new Player(this.playground, this.playground.width / 2 / this.playground.scale,
+            0.5, 0.05, "white", 0.15, "enemy", username, photo);
+        player.uuid = uuid;  // uuid从创建端发送过来
+        this.playground.players.push(player);
     }
 }class AcGamePlayground {
 	constructor(root) {
 		this.root = root;
 		this.$playground = $(`<div class="ac-game-playground"></div>`);
-		// 先不要让它直接显示
-		this.hide();
-
-		
-
-		// show出整个页面再初始化以下操作
-		// 可能多次show出不同的花板，所以放在start前
-		this.root.$ac_game.append(this.$playground);
-		
-		
+		this.hide(); // 先不显示游戏界面		
+		this.root.$ac_game.append(this.$playground);  // show出整个页面再初始化以下操作（可能多次show出不同的画板，所以放在start前）		
 		this.start();
 	}
-	start() {
-
-		// 每次用户调整窗口，都要调整大小
+	start() {		
 		let outer = this;
-        $(window).resize(function() {
+        $(window).resize(function() {  // 每次用户调整窗口，都要调整大小
             outer.resize();
-        });
-		
-	}
-
-	// 调整长宽，保证是16：9
-	resize() {
-		// 得到当前长宽
-        this.width = this.$playground.width();
+        });		
+	}	
+	resize() {  // 调整长宽，保证是16：9
+        this.width = this.$playground.width();  // 得到当前长宽
         this.height = this.$playground.height();
-		// 定义两者的最小的基准
-        let unit = Math.min(this.width / 16, this.height / 9);  // 以最小的作为基准，渲染
-		// 得到16：9的长宽
-        this.width = unit * 16;
+        let unit = Math.min(this.width / 16, this.height / 9);  // 定义两者的最小的基准，以最小的作为基准，渲染
+        this.width = unit * 16;  // 得到16：9的长宽
         this.height = unit * 9;
-
-		// scale是一个基准，让所有元素按照scale来按比例显示
         this.scale = this.height;   // resize时，其他元素的渲染大小都以当前渲染的高度为基准，存为 scale 变量
-
-        if (this.game_map) {
-			this.game_map.resize();  //如果此时地图已创建，则resize一下画布的黑框
+        if (this.game_map) {  //如果此时地图已创建，则resize一下画布的黑框
+			this.game_map.resize();
 		}
     }
-
-	// 这个show的生效位置是在menu/zbase.js里面的，选择单人游戏后进入游戏界面
-	show(mode) {    
-		//打开 playground 界面
-		this.$playground.show();
-		// 刚打开界面时，需要resize一遍
-		// this.resize();
-		// 把画布大小存下来
-		this.width = this.$playground.width();
+	show(mode) {  // 这个show的生效位置是在menu/zbase.js里面的，选择单人游戏后进入游戏界面
+		this.$playground.show();  // 打开 playground 界面
+		this.width = this.$playground.width();  // 把画布大小存下来
 		this.height = this.$playground.height();
-		// 把地图创建出来
-		this.game_map = new GameMap(this);
-		// 刚打开界面时，需要resize一遍 ，在game_map后面resize，把画布一起resize
-		this.resize();
-		// 把玩家创建出来
-		this.players = [];
+		this.game_map = new GameMap(this);  // 把地图创建出来
+		this.resize();  // 刚打开界面时，需要resize一遍 ，在game_map后面resize，把画布一起resize
+		this.players = [];  // 把玩家创建出来
 		this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo));
-		// console.log("create player");
-
-		if (mode === "single mode") {
-			//创建好 5 个人机
-			for (let i = 0; i < 5; i ++ ) {
+		if (mode === "single mode") {		
+			for (let i = 0; i < 5; i ++ ) {  //创建好 5 个人机
 				this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, "robot"));
-				// console.log("create robot", i);
 			}
 		}
-		else if (mode === "multi mode") {
+		else if (mode === "multi mode") {  // 多人模式	
 			let outer = this;
-
-			this.mps = new MultiPlayerSocket(this);
-			// 这个函数时连接创建成功时，回调这个函数
-			console.log("zhiixngle");
-            this.mps.ws.onopen = function() {
-            	outer.mps.send_create_player();
-			}
-			
+			this.mps = new MultiPlayerSocket(this);  // 创建新的端口发送请求？
+            this.mps.uuid = this.players[0].uuid;
+            this.mps.ws.onopen = function() {  // 用来广播我创建了一个角色（连接创建成功时，回调这个函数）
+            	outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+			}			
 		}
-
-
-		// 这样创建出来的 5 个人机是不会行动的
-		// 我们写一个简易的 Ai 程序，让他们也会移动
-		// 这里实现的逻辑是：每次随机一个目的地，向目的地移动，然后再随机一个目的地，循环下去
-		// 根据该逻辑，修改play中的start、update、on_destroy函数即可
 	}
 	hide() {    //关闭 playground 界面
 		this.$playground.hide();
 	}
-
-    // 人机随机颜色
-    get_random_color() {
+    get_random_color() {  // 人机随机颜色
         let colors = ["blue", "red", "pink", "grey", "green"];
         return colors[Math.floor(Math.random() * 5)];
     }
-
 }
 class Settings {
     constructor(root) {

@@ -1,35 +1,27 @@
 let AC_GAME_OBJECTS = [];
-
 class AcGameObject {
     constructor() {
         AC_GAME_OBJECTS.push(this);
-        // 标记一下有没有执行过start函数
-        this.has_called_start = false;
-        // 当前距离上一帧的时间间隔,下面还要记录一下下一帧的时间间隔
-        this.timedelta = 0;
-
-        
+        this.has_called_start = false;  // 标记一下有没有执行过start函数
+        this.timedelta = 0;  // 当前距离上一帧的时间间隔,下面还要记录一下下一帧的时间间隔
+        this.uuid = this.create_uuid();  // 为了练联机对战，每个人创建一个随机编号
     }
-
-    // 第一帧执行一次
-    start() {
-
+    create_uuid() {  // 创建唯一编号
+        let res = "";
+        for (let i = 0; i < 8; i ++ ) {
+            let x = parseInt(Math.floor(Math.random() * 10));   //[0, 10)
+            res += x;
+        }
+        return res;
     }
-
-    // 每一帧均会执行一次
-    update() {
-
+    start() {  // 第一帧执行一次
     }
-
-    // 在被销毁前执行一次
-    on_destroy() {
-
+    update() {  // 每一帧均会执行一次
     }
-
-    // 删掉该物体时执行一次
-    destroy() {
+    on_destroy() {  // 在被销毁前执行一次
+    }
+    destroy() {  // 删掉该物体时执行一次
         this.on_destroy();
-
         for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
             if (AC_GAME_OBJECTS[i] === this) {
                 AC_GAME_OBJECTS.splice(i, 1);

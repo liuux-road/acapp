@@ -43,31 +43,50 @@ over   2023/5/10
 over<br>
 2023/5/12（11号上午组会，下午上课，晚上聚餐，鸽了一天）
 ### 7. 实现连接对战
-1. 统一长度单位
+1. 统一长度单位<br>
 地图 16:9 等比例缩放`js/src/playground/zbase.js`;`js/src/playground/game_map/zbase.js`;`css/game.css`;`js/src/playground/game_map/zbase.js`<br>
 玩家 Player 缩放渲染`js/src/playground/zbase.js`;`js/src/playground/player/zbase.js`;<br>
 火球 Fireball 缩放渲染`js/src/playground/skill/fireball/zbase.js`<br>
 粒子 particle 缩放渲染`js/src/playground/particle/zbase.js`<br>
 2023/5/12 over<br>
 问题：可能是浏览器刷新不彻底，导致缩放的小球一直不显示出来；另外有一个bug就是刚开始时候幕布不是16：9，会导致小球跑出画面外
-2. 增加“联机对战”模式
+2. 增加“联机对战”模式<br>
 为了区分：用户自己，机器人，联机玩家。需要把 is_me 改成字符串，用以表示不同 Player<br>
 `menu/zbase.js`<br>
 `playground/zbase.js`<br>
 `playground/player/zbase.js`<br>
 2023/5/12 over
-3. 配置django_channels
+3. 配置django_channels<br>
 django_channels 就是基于 wss 协议的一种实现<br>
 wss 是 web-socker 协议的安全模式，支持 C/S 下的双向通信（HTTP协议只支持单向通信）
-* 安装 channels_redis
+* 安装 channels_redis<br>
 配置 `acapp/asgi.py`<br>
 配置 `acapp/settings.py`<br>
 配置 `game/routing.py`(这一部分的作用相当于 http 的 urls)<br>
 编写 `game/consumers`(这一部分的作用相当于 http 的 views)<br>
 启动 `django_channels`
-* 建立 WSS 连接
+* 建立 WSS 连接<br>
 路由 routing `game/routing.py`<br>
 前端js `playground/zbase.js`; `playground/socket/multiplayer/zbase.js`<br>
 2023/5/13 over
-4. 编写同步函数
+4. 编写同步函数<br>
+一共需要完成四个通信：<br>
+（通信的逻辑基本都是现在本地完成，然后将结果返回给服务器，服务器再分发给其他客户端，达成同步）<br>
+`create-player` : 在所有玩家的游戏界面，创建一个新加入的玩家<br>
+`move-to` : 在所有玩家的游戏界面，讲一个角色移动到一个位置<br>
+`shoot-fireball` : 在所有玩家的游戏界面，让一个角色发射一个火球<br>
+`attack` : 在所有玩家的游戏界面，让一个角色被攻击<br>
+一场游戏里，所有的元素（玩家，火球等）都需要唯一的标识，来方便同步<br>
+
+为此，我们可以直接修改一下游戏引擎，对于每个元素都创建我们需要的唯一标识
+* create-player<br>
+后端 `settings.py`; `consumers/multiplayer/index.py`<br>
+前端 `playground/socket/multiplayer/zbase.js`<br>
+2023/5/13 over
+
+
+
+
+
+
 

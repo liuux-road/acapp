@@ -24,6 +24,7 @@ class AcGamePlayground {
 		}
     }
 	show(mode) {  // 这个show的生效位置是在menu/zbase.js里面的，选择单人游戏后进入游戏界面
+		this.mode = mode;
 		this.$playground.show();  // 打开 playground 界面
 		this.width = this.$playground.width();  // 把画布大小存下来
 		this.height = this.$playground.height();

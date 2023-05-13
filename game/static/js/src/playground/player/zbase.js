@@ -1,8 +1,5 @@
 class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
-
-        console.log(character, username, photo);
-
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -28,6 +25,7 @@ class Player extends AcGameObject {
             this.img = new Image();
             this.img.src = this.photo;
         }
+        this.fireballs = [];    // 存该用户发射的所有火球
     }
     start() {
         if (this.character === "me") {  // 如果是自己就加一个监听函数
@@ -64,34 +62,50 @@ class Player extends AcGameObject {
         let speed = 0.5;
         let move_length = 1.0;
         let damage = 0.01;
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
-    }    
+        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+        this.fireballs.push(fireball);  // 火球数组中添加新火球
+        return fireball;
+    }
+    destroy_fireball(uuid) {  // 火球消失
+        for (let i = 0; i < this.fireballs.length; i ++) {
+            let fireball = this.fireballs[i];
+            if (fireball.uuid == uuid) {
+                fireball.destroy();
+                break;
+            }
+        }
+    }
+    receive_attack(x, y, angle, damage, ball_uuid, attacker) {
+        attacker.destroy_fireball(ball_uuid);
+        this.x = x;
+        this.y = y;
+        this.is_attacked(angle, damage);
+    }
     add_listening_events() {  // 监听输入参数
         let outer = this;
-        // 把鼠标右键默认菜单这一事件默认返回false，方便我们设计自己的操作
-        this.playground.game_map.$canvas.on("contextmenu", function() {
+        this.playground.game_map.$canvas.on("contextmenu", function() {  // 把鼠标右键默认菜单这一事件默认返回false，方便我们设计自己的操作
             return false;
-        });
-
-        // 鼠标事件
-        this.playground.game_map.$canvas.mousedown ( function(e) {
-            /// 得到画布位置
-            const rect = outer.ctx.canvas.getBoundingClientRect(); 
-            // 鼠标右键->移动
-            if (e.which === 3) {
+        });        
+        this.playground.game_map.$canvas.mousedown ( function(e) {  // 鼠标事件
+            const rect = outer.ctx.canvas.getBoundingClientRect();  // 得到画布位置
+            if (e.which === 3) {  // 鼠标右键->移动
                 outer.move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
-            }
-            // 鼠标左键->释放火球
-            else if (e.which === 1) {
-                if (outer.cur_skill === "fireball") {
-                    outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                if (outer.playground.mode === "multi mode") {
+                    outer.playground.mps.send_move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
                 }
-                // 清空技能选项
-                outer.cur_skill = null;
+            }
+            else if (e.which === 1) {  // 鼠标左键->释放火球
+                if (outer.cur_skill === "fireball") {
+                    let fireball = outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                    if (outer.playground.mode === "multi mode") {
+                        outer.playground.mps.send_shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale, fireball.uuid);
+                    }
+                }
+                outer.cur_skill = null;  // 清空技能选项
             }
         });        
         $(window).keydown ( function(e) {  // 键盘事件
-            if (e.which === 81 ) {
+            if (e.which === 81) {
                 outer.cur_skill = "fireball";
                 return false;
             }
@@ -166,6 +180,7 @@ class Player extends AcGameObject {
         for (let i = 0; i < this.playground.players.length; i ++ ) {
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
+                break;
             }
         }
 

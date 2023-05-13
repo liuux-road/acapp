@@ -155,7 +155,7 @@ class Settings {
             url: "https://app5427.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
             type: "GET",
             success: function (resp) {
-                console.log(resp);
+                // console.log(resp);
                 if (resp.result === "success") {
                     window.location.replace(resp.apply_code_url);
                 }
@@ -179,7 +179,7 @@ class Settings {
         // AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, callback);
         // 这里写的回调函数是自己的resp.redirect_urreceive_codei的返回值，resp.redirect_uri在apply_code文件中写的，实际就是receive_code，我们实现的是返回用户名和头像
         this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function(resp) {
-            console.log(resp);
+            // console.log(resp);
             if (resp.result === "success") {
                 // 获取到登陆账号的用户名和头像
                 outer.username = resp.username;
@@ -220,7 +220,7 @@ class Settings {
                 platform: outer.platform,
             },
             success: function (resp) {
-                console.log(resp);
+                // console.log(resp);
                 if (resp.result === "success") {
                     // 获取到登陆账号的用户名和头像
                     outer.username = resp.username;
@@ -249,7 +249,7 @@ class Settings {
                 password: password,
             },
             success: function (resp) {
-                console.log(resp);
+                // console.log(resp);
                 if (resp.result === "success") {
                     location.reload();
                 } else {
@@ -275,7 +275,7 @@ class Settings {
                 password_confirm: password_confirm,
             },
             success: function (resp) {
-                console.log(resp);
+                // console.log(resp);
                 if (resp.result === "success") {
                     location.reload();
                 } else {
@@ -286,17 +286,21 @@ class Settings {
     }
 
     logout_on_remote() {     //在远程服务器上登出
-        if (this.platform === "ACAPP") return false;
-        $.ajax({
-            url: "https://app5427.acapp.acwing.com.cn/settings/logout/",
-            type: "GET",
-            success: function (resp) {
-                console.log(resp);
-                if (resp.result === "success") {
-                    location.reload();
+        if (this.platform === "ACAPP") {
+            this.root.AcWingOS.api.window.close();
+        }
+        else {
+            $.ajax({
+                url: "https://app5427.acapp.acwing.com.cn/settings/logout/",
+                type: "GET",
+                success: function (resp) {
+                    // console.log(resp);
+                    if (resp.result === "success") {
+                        location.reload();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
 

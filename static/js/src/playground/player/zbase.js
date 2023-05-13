@@ -1,8 +1,5 @@
 class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
-
-        console.log(character, username, photo);
-
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -28,31 +25,24 @@ class Player extends AcGameObject {
             this.img = new Image();
             this.img.src = this.photo;
         }
+        this.fireballs = [];    // 存该用户发射的所有火球
     }
-
     start() {
-        // 如果是自己就加一个监听函数
-        if (this.character === "me") {
+        if (this.character === "me") {  // 如果是自己就加一个监听函数
             this.add_listening_events();
         }
-        // 如果是人机模式，让人机移动去随机位置
-        else if (this.character === "robot") {
+        else if (this.character === "robot") {  // 如果是人机模式，让人机移动去随机位置
             let tx = Math.random() * this.playground.width / this.playground.scale;
             let ty = Math.random() * this.playground.height / this.playground.scale;
             this.move_to(tx, ty);
         }
     }
-
-    // 求两点的欧几里得距离
-    get_dist(x1, y1, x2, y2) {
+    get_dist(x1, y1, x2, y2) {  // 求两点的欧几里得距离
         let dx = x2 - x1;
         let dy = y2 - y1;
         return Math.sqrt(dx * dx + dy * dy);
     }
-
-
-    // 移动策略
-    move_to(tx, ty) {
+    move_to(tx, ty) {  // 移动策略
         // 计算移动距离
         this.move_length = this.get_dist(this.x, this.y, tx, ty);
         // 计算移动角度， api接口：atan2(dy,dx)
@@ -63,10 +53,7 @@ class Player extends AcGameObject {
         this.vy = Math.sin(angle);
         // console.log("move_to", tx, ty);
     }
-
-    // 确定火球的参数
-    shoot_fireball(tx, ty) {
-
+    shoot_fireball(tx, ty) {  // 确定火球的参数
         let x = this.x, y = this.y; //火球发射点就是当前玩家的位置
         let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
@@ -75,48 +62,56 @@ class Player extends AcGameObject {
         let speed = 0.5;
         let move_length = 1.0;
         let damage = 0.01;
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+        this.fireballs.push(fireball);  // 火球数组中添加新火球
+        return fireball;
     }
-
-    // 监听输入参数
-    add_listening_events() {
+    destroy_fireball(uuid) {  // 火球消失
+        for (let i = 0; i < this.fireballs.length; i ++) {
+            let fireball = this.fireballs[i];
+            if (fireball.uuid == uuid) {
+                fireball.destroy();
+                break;
+            }
+        }
+    }
+    receive_attack(x, y, angle, damage, ball_uuid, attacker) {
+        attacker.destroy_fireball(ball_uuid);
+        this.x = x;
+        this.y = y;
+        this.is_attacked(angle, damage);
+    }
+    add_listening_events() {  // 监听输入参数
         let outer = this;
-        // 把鼠标右键默认菜单这一事件默认返回false，方便我们设计自己的操作
-        this.playground.game_map.$canvas.on("contextmenu", function() {
+        this.playground.game_map.$canvas.on("contextmenu", function() {  // 把鼠标右键默认菜单这一事件默认返回false，方便我们设计自己的操作
             return false;
-        });
-
-        // 鼠标事件
-        this.playground.game_map.$canvas.mousedown ( function(e) {
-            /// 得到画布位置
-            const rect = outer.ctx.canvas.getBoundingClientRect(); 
-            // 鼠标右键->移动
-            if (e.which === 3) {
+        });        
+        this.playground.game_map.$canvas.mousedown ( function(e) {  // 鼠标事件
+            const rect = outer.ctx.canvas.getBoundingClientRect();  // 得到画布位置
+            if (e.which === 3) {  // 鼠标右键->移动
                 outer.move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
-            }
-            // 鼠标左键->释放火球
-            else if (e.which === 1) {
-                if (outer.cur_skill === "fireball") {
-                    outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                if (outer.playground.mode === "multi mode") {
+                    outer.playground.mps.send_move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
                 }
-                // 清空技能选项
-                outer.cur_skill = null;
             }
-        });
-
-        // 键盘事件
-        $(window).keydown ( function(e) {
-            if (e.which === 81 ) {
+            else if (e.which === 1) {  // 鼠标左键->释放火球
+                if (outer.cur_skill === "fireball") {
+                    let fireball = outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                    if (outer.playground.mode === "multi mode") {
+                        outer.playground.mps.send_shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale, fireball.uuid);
+                    }
+                }
+                outer.cur_skill = null;  // 清空技能选项
+            }
+        });        
+        $(window).keydown ( function(e) {  // 键盘事件
+            if (e.which === 81) {
                 outer.cur_skill = "fireball";
                 return false;
             }
-
         });
     }
-
-    // 更新移动
-    update_move() {
-
+    update_move() {  // 更新移动
         // 人机随机发射炮弹
         this.spent_time += this.timedelta / 1000;
         if (this.character === "robot" && this.spent_time > 4 && Math.random() * 180 < 1) {
@@ -155,20 +150,13 @@ class Player extends AcGameObject {
             }
         }
     }
-
-    
-    // 更新函数
-    update() {
+    update() {  // 更新函数
         this.update_move();
         this.render();
     }
-
-
-    render(){
+    render(){  // 动态渲染
         let scale = this.playground.scale;
-
         if (this.character !== "robot") {
-
             // 这是玩家或敌人，渲染头像
             this.ctx.save();
             this.ctx.beginPath();
@@ -179,10 +167,8 @@ class Player extends AcGameObject {
             this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, 
                                this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
-
         } 
         else {
-
             // 这是人机，渲染一个圆
             this.ctx.beginPath();
             this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, 2 * Math.PI, false);
@@ -190,12 +176,11 @@ class Player extends AcGameObject {
             this.ctx.fill();
         }
     }
-
-
     on_destroy() {
         for (let i = 0; i < this.playground.players.length; i ++ ) {
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
+                break;
             }
         }
 

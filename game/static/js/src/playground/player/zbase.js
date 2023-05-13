@@ -26,8 +26,26 @@ class Player extends AcGameObject {
             this.img.src = this.photo;
         }
         this.fireballs = [];    // 存该用户发射的所有火球
+        if (this.character === "me") {  // 游戏开始前以及技能的冷却时间
+            this.fireball_coldtime = 3; // 单位：s
+            this.fireball_img = new Image();
+            this.fireball_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_9340c86053-fireball.png";
+        }
+        if (this.character === "me") {  // 闪现技能的冷却时间
+            this.blink_coldtime = 5;
+            this.blink_img = new Image();
+            this.blink_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
+        }
     }
     start() {
+        this.playground.player_count ++ ;
+        this.playground.notice_board.write("已就绪：" + this.playground.player_count + "人");
+        if (this.playground.player_count >= 3) {
+            this.playground.state = "fighting";
+            this.playground.notice_board.write("Fighting");
+        }
+
+
         if (this.character === "me") {  // 如果是自己就加一个监听函数
             this.add_listening_events();
         }
@@ -87,6 +105,9 @@ class Player extends AcGameObject {
             return false;
         });        
         this.playground.game_map.$canvas.mousedown ( function(e) {  // 鼠标事件
+            if (outer.playground.state !== "fighting")
+            return false;
+
             const rect = outer.ctx.canvas.getBoundingClientRect();  // 得到画布位置
             if (e.which === 3) {  // 鼠标右键->移动
                 outer.move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
@@ -94,19 +115,44 @@ class Player extends AcGameObject {
                     outer.playground.mps.send_move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
                 }
             }
-            else if (e.which === 1) {  // 鼠标左键->释放火球
+            else if (e.which === 1) {  // 鼠标左键->释放技能
                 if (outer.cur_skill === "fireball") {
+                    if (outer.fireball_coldtime > outer.eps)
+                        return false;
                     let fireball = outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
                     if (outer.playground.mode === "multi mode") {
                         outer.playground.mps.send_shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale, fireball.uuid);
                     }
+                    outer.fireball_coldtime = 3;
+                }
+                else if (outer.cur_skill === "blink") {
+                    if (outer.blink_coldtime > outer.eps)
+                        return false;
+                    outer.blink((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                    // 同步函数
+                    if (outer.playground.mode === "multi mode") {
+                        outer.playground.mps.send_blink((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                    }
+                    outer.blink_coldtime = 5;
                 }
                 outer.cur_skill = null;  // 清空技能选项
             }
         });        
         $(window).keydown ( function(e) {  // 键盘事件
-            if (e.which === 81) {
+            if (outer.playground.state !== "fighting")
+                return true;
+
+            
+            if (e.which === 81) {    //q键
+                if (outer.fireball_coldtime >= outer.eps)
+                    return true;
                 outer.cur_skill = "fireball";
+                return false;
+            }
+            else if (e.which === 70) {    //f键
+                if (outer.blink_coldtime >= outer.eps)
+                    return true;
+                outer.cur_skill = "blink";
                 return false;
             }
         });
@@ -150,9 +196,73 @@ class Player extends AcGameObject {
             }
         }
     }
+    blink(tx, ty) {  // 闪现技能
+        let d = this.get_dist(this.x, this.y, tx, ty);
+        d = Math.min(d, 0.8);
+        let angle = Math.atan2(ty - this.y, tx - this.x);
+        this.x += d * Math.cos(angle);
+        this.y += d * Math.sin(angle);
+
+        this.blink_coldtime = 5;  // cd:5s
+        this.move_length = 0;   //闪现完停下来
+
+    }
     update() {  // 更新函数
         this.update_move();
+        if (this.character === "me" && this.playground.state === "fighting") {
+            this.update_coldtime();
+        }
         this.render();
+    }
+    update_coldtime() {  // 更新技能冷却
+        this.fireball_coldtime -= this.timedelta / 1000;
+        this.fireball_coldtime = Math.max(0, this.fireball_coldtime);
+        this.blink_coldtime -= this.timedelta / 1000;
+        this.blink_coldtime = Math.max(0, this.blink_coldtime);
+    }
+    render_skill_coldtime() {  // 渲染火球技能的冷却
+        let scale = this.playground.scale;
+        let x = 1.5, y = 0.9, r = 0.04;
+
+        // 渲染技能图标
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.fireball_img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
+        this.ctx.restore();
+
+        // 渲染冷却指示
+        if (this.fireball_coldtime >= this.eps){
+            this.ctx.beginPath();
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 3) - Math.PI / 2, true);
+            this.ctx.lineTo(x * scale, y * scale);
+            this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
+            this.ctx.fill();
+        }
+
+        x = 1.62, y = 0.9, r = 0.04;
+        // 闪现技能
+        // 渲染技能图标
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.blink_img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
+        this.ctx.restore();
+
+        // 渲染冷却指示
+        if (this.blink_coldtime >= this.eps){
+            this.ctx.beginPath();
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.blink_coldtime / 5) - Math.PI / 2, true);
+            this.ctx.lineTo(x * scale, y * scale);
+            this.ctx.fillStyle = "rgba(0, 0, 255, 0.6)";
+            this.ctx.fill();
+        }
     }
     render(){  // 动态渲染
         let scale = this.playground.scale;
@@ -174,6 +284,10 @@ class Player extends AcGameObject {
             this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, 2 * Math.PI, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
+        }
+
+        if (this.character === "me" && this.playground.state === "fighting") {  // 渲染火球技能的冷却
+            this.render_skill_coldtime();
         }
     }
     on_destroy() {

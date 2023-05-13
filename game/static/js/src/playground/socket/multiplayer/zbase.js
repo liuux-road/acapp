@@ -26,6 +26,10 @@ class MultiPlayerSocket {
             else if (event === "attack") {  // 火球击中事件，调用函数
                 outer.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.ball_uuid);
             }
+            else if (event === "blink") {  // 闪现事件，调用函数
+                outer.receive_blink(uuid, data.tx, data.ty);
+            }
+
         };
     }
     send_create_player(username, photo) {  // 广播，我这里创建了一个角色，发送角色uuid。进入多人游戏时调用这个函数
@@ -85,7 +89,7 @@ class MultiPlayerSocket {
             fireball.uuid = ball_uuid;
         }
     }
-    send_attack(attackee_uuid, x, y, angle, damage, ball_uuid) {
+    send_attack(attackee_uuid, x, y, angle, damage, ball_uuid) {  // 攻击技能触发
         let outer = this;
         this.ws.send(JSON.stringify({
             'event': "attack",
@@ -103,6 +107,21 @@ class MultiPlayerSocket {
         let attackee = this.get_player(attackee_uuid);
         if (attacker && attackee) {
             attackee.receive_attack(x, y, angle, damage, ball_uuid, attacker);
+        }
+    }
+    send_blink(tx, ty) {  // 闪现技能
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "blink",
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+        }));
+    }
+    receive_blink(uuid, tx, ty) {
+        let player = this.get_player(uuid);
+        if (player) {
+            player.blink(tx, ty);
         }
     }
 }

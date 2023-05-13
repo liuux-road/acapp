@@ -23,12 +23,17 @@ class AcGamePlayground {
 			this.game_map.resize();
 		}
     }
-	show(mode) {  // 这个show的生效位置是在menu/zbase.js里面的，选择单人游戏后进入游戏界面
-		this.mode = mode;
+	show(mode) {  // 这个show的生效位置是在menu/zbase.js里面的，选择单人游戏后进入游戏界面		
 		this.$playground.show();  // 打开 playground 界面
 		this.width = this.$playground.width();  // 把画布大小存下来
 		this.height = this.$playground.height();
 		this.game_map = new GameMap(this);  // 把地图创建出来
+
+		this.mode = mode;
+		this.state = "waiting";     //waiting -> fighting -> over
+        this.notice_board = new NoticeBoard(this);
+        this.player_count = 0;
+
 		this.resize();  // 刚打开界面时，需要resize一遍 ，在game_map后面resize，把画布一起resize
 		this.players = [];  // 把玩家创建出来
 		this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo));

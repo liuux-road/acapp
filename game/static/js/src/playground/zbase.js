@@ -69,6 +69,14 @@ class AcGamePlayground {
 			}
 		}
 		else if (mode === "multi mode") {
+			let outer = this;
+
+			this.mps = new MultiPlayerSocket(this);
+			// 这个函数时连接创建成功时，回调这个函数
+			console.log("zhiixngle");
+            this.mps.ws.onopen = function() {
+            	outer.mps.send_create_player();
+			}
 			
 		}
 

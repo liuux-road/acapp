@@ -513,7 +513,24 @@ class Particle extends AcGameObject {
         this.destroy(); // 火球命中后，自然消失
     }
 }
-class AcGamePlayground {
+class MultiPlayerSocket {
+    constructor(playground) {
+        this.playground = playground;
+        this.ws = new WebSocket("wss://app5427.acapp.acwing.com.cn/wss/multiplayer/");
+        this.start();
+    }
+    start() {
+    }
+
+    send_create_player() {
+        this.ws.send(JSON.stringify({
+            'message': 'hello acapp server',
+        }));
+    }
+    
+    receive_create_player() {
+    }
+}class AcGamePlayground {
 	constructor(root) {
 		this.root = root;
 		this.$playground = $(`<div class="ac-game-playground"></div>`);
@@ -584,6 +601,14 @@ class AcGamePlayground {
 			}
 		}
 		else if (mode === "multi mode") {
+			let outer = this;
+
+			this.mps = new MultiPlayerSocket(this);
+			// 这个函数时连接创建成功时，回调这个函数
+			console.log("zhiixngle");
+            this.mps.ws.onopen = function() {
+            	outer.mps.send_create_player();
+			}
 			
 		}
 

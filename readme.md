@@ -57,5 +57,17 @@ over<br>
 `playground/player/zbase.js`<br>
 2023/5/12 over
 3. 配置django_channels
+django_channels 就是基于 wss 协议的一种实现<br>
+wss 是 web-socker 协议的安全模式，支持 C/S 下的双向通信（HTTP协议只支持单向通信）
+* 安装 channels_redis
+配置 `acapp/asgi.py`<br>
+配置 `acapp/settings.py`<br>
+配置 `game/routing.py`(这一部分的作用相当于 http 的 urls)<br>
+编写 `game/consumers`(这一部分的作用相当于 http 的 views)<br>
+启动 `django_channels`
+* 建立 WSS 连接
+路由 routing `game/routing.py`<br>
+前端js `playground/zbase.js`; `playground/socket/multiplayer/zbase.js`<br>
+2023/5/13 over
 4. 编写同步函数
 

@@ -138,11 +138,20 @@ class Player extends AcGameObject {
                 outer.cur_skill = null;  // 清空技能选项
             }
         });        
-        $(window).keydown ( function(e) {  // 键盘事件
+        this.playground.game_map.$canvas.keydown(function(e) {  // 键盘事件
+            if (e.which === 13) {   // enter (显示对话框)
+                if (outer.playground.mode === "multi mode") {
+                    outer.playground.chat_field.show_input();
+                    return false;
+                }
+            } else if (e.which === 27) {    //esc（关闭对话框）
+                if (outer.playground.mode === "multi mode") {
+                    outer.playground.char_field.hide_input();
+                    return false;
+                }
+            }
             if (outer.playground.state !== "fighting")
-                return true;
-
-            
+                return true;            
             if (e.which === 81) {    //q键
                 if (outer.fireball_coldtime >= outer.eps)
                     return true;

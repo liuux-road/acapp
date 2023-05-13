@@ -2,7 +2,7 @@ class GameMap extends AcGameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $('<canvas></canvas>');
+        this.$canvas = $('<canvas tabindex=0></canvas>');  // 将 keydown 监听事件绑定到 canvas 上
         this.ctx = this.$canvas[0].getContext('2d');
         this.ctx.canvas.width = this.playground.width;
         this.ctx.canvas.height = this.playground.height;
@@ -11,7 +11,7 @@ class GameMap extends AcGameObject {
     }
 
     start() {
-
+        this.$canvas.focus();  // 将 keydown 监听事件绑定到 canvas 上
     }
 
     update() {

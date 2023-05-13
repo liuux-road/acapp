@@ -29,7 +29,9 @@ class MultiPlayerSocket {
             else if (event === "blink") {  // 闪现事件，调用函数
                 outer.receive_blink(uuid, data.tx, data.ty);
             }
-
+            else if (event === "message") {  // 闪现事件，调用函数
+                outer.receive_message(data.username, data.text);
+            }
         };
     }
     send_create_player(username, photo) {  // 广播，我这里创建了一个角色，发送角色uuid。进入多人游戏时调用这个函数
@@ -123,5 +125,17 @@ class MultiPlayerSocket {
         if (player) {
             player.blink(tx, ty);
         }
+    }
+    send_message(text) {  // 聊天框
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "message",
+            'uuid': outer.uuid,
+            'username': outer.playground.root.settings.username,
+            'text': text,
+        }));
+    }
+    receive_message(username, text) {
+        this.playground.chat_field.add_message(username, text);
     }
 }

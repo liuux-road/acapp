@@ -43,12 +43,13 @@ class AcGamePlayground {
 			}
 		}
 		else if (mode === "multi mode") {  // 多人模式	
+			this.chat_field = new ChatField(this);  // 创建聊天
 			let outer = this;
 			this.mps = new MultiPlayerSocket(this);  // 创建新的端口发送请求？
             this.mps.uuid = this.players[0].uuid;
             this.mps.ws.onopen = function() {  // 用来广播我创建了一个角色（连接创建成功时，回调这个函数）
             	outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
-			}			
+			}				
 		}
 	}
 	hide() {    //关闭 playground 界面

@@ -38,7 +38,7 @@ class Player extends AcGameObject {
         }
     }
     start() {
-        this.playground.player_count ++ ;
+        this.playground.player_count++;
         this.playground.notice_board.write("已就绪：" + this.playground.player_count + "人");
         if (this.playground.player_count >= 3) {
             this.playground.state = "fighting";
@@ -85,7 +85,7 @@ class Player extends AcGameObject {
         return fireball;
     }
     destroy_fireball(uuid) {  // 火球消失
-        for (let i = 0; i < this.fireballs.length; i ++) {
+        for (let i = 0; i < this.fireballs.length; i++) {
             let fireball = this.fireballs[i];
             if (fireball.uuid == uuid) {
                 fireball.destroy();
@@ -101,12 +101,12 @@ class Player extends AcGameObject {
     }
     add_listening_events() {  // 监听输入参数
         let outer = this;
-        this.playground.game_map.$canvas.on("contextmenu", function() {  // 把鼠标右键默认菜单这一事件默认返回false，方便我们设计自己的操作
+        this.playground.game_map.$canvas.on("contextmenu", function () {  // 把鼠标右键默认菜单这一事件默认返回false，方便我们设计自己的操作
             return false;
-        });        
-        this.playground.game_map.$canvas.mousedown ( function(e) {  // 鼠标事件
+        });
+        this.playground.game_map.$canvas.mousedown(function (e) {  // 鼠标事件
             if (outer.playground.state !== "fighting")
-            return false;
+                return false;
 
             const rect = outer.ctx.canvas.getBoundingClientRect();  // 得到画布位置
             if (e.which === 3) {  // 鼠标右键->移动
@@ -137,8 +137,8 @@ class Player extends AcGameObject {
                 }
                 outer.cur_skill = null;  // 清空技能选项
             }
-        });        
-        this.playground.game_map.$canvas.keydown(function(e) {  // 键盘事件
+        });
+        this.playground.game_map.$canvas.keydown(function (e) {  // 键盘事件
             if (e.which === 13) {   // enter (显示对话框)
                 if (outer.playground.mode === "multi mode") {
                     outer.playground.chat_field.show_input();
@@ -151,7 +151,7 @@ class Player extends AcGameObject {
                 }
             }
             if (outer.playground.state !== "fighting")
-                return true;            
+                return true;
             if (e.which === 81) {    //q键
                 if (outer.fireball_coldtime >= outer.eps)
                     return true;
@@ -197,7 +197,7 @@ class Player extends AcGameObject {
             }
             else {
                 // 计算单位帧里的移动距离
-                let moved = Math.min(this.move_length, this.speed * this.timedelta/1000);
+                let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
                 this.x += this.vx * moved;
                 this.y += this.vy * moved;
                 // 还要减掉移动的距离
@@ -243,7 +243,7 @@ class Player extends AcGameObject {
         this.ctx.restore();
 
         // 渲染冷却指示
-        if (this.fireball_coldtime >= this.eps){
+        if (this.fireball_coldtime >= this.eps) {
             this.ctx.beginPath();
             this.ctx.moveTo(x * scale, y * scale);
             this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 3) - Math.PI / 2, true);
@@ -264,7 +264,7 @@ class Player extends AcGameObject {
         this.ctx.restore();
 
         // 渲染冷却指示
-        if (this.blink_coldtime >= this.eps){
+        if (this.blink_coldtime >= this.eps) {
             this.ctx.beginPath();
             this.ctx.moveTo(x * scale, y * scale);
             this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.blink_coldtime / 5) - Math.PI / 2, true);
@@ -273,7 +273,7 @@ class Player extends AcGameObject {
             this.ctx.fill();
         }
     }
-    render(){  // 动态渲染
+    render() {  // 动态渲染
         let scale = this.playground.scale;
         if (this.character !== "robot") {
             // 这是玩家或敌人，渲染头像
@@ -283,10 +283,10 @@ class Player extends AcGameObject {
             this.ctx.stroke();
             this.ctx.clip();
             // console.log(this.img);
-            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, 
-                               this.radius * 2 * scale, this.radius * 2 * scale);
+            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale,
+                this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
-        } 
+        }
         else {
             // 这是人机，渲染一个圆
             this.ctx.beginPath();
@@ -300,7 +300,7 @@ class Player extends AcGameObject {
         }
     }
     on_destroy() {
-        for (let i = 0; i < this.playground.players.length; i ++ ) {
+        for (let i = 0; i < this.playground.players.length; i++) {
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
                 break;
@@ -321,10 +321,10 @@ class Player extends AcGameObject {
         // 粒子小球的起始坐标应与玩家的坐标相同
         // 粒子小球的颜色与玩家颜色相同
         // 粒子小球的速度为玩家移动速度的10倍
-        for (let i = 0; i < 10+Math.random()*5; i++) {
+        for (let i = 0; i < 10 + Math.random() * 5; i++) {
             let x = this.x, y = this.y;
-            let radius = this.radius * Math.random()*0.1;
-            let angle = 2*Math.PI * Math.random();
+            let radius = this.radius * Math.random() * 0.1;
+            let angle = 2 * Math.PI * Math.random();
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = this.color;
             let speed = this.speed * 10;
@@ -340,7 +340,7 @@ class Player extends AcGameObject {
         // 执行击退效果
         this.damage_x = Math.cos(angle);
         this.damage_y = Math.sin(angle);
-        this.damage_speed = damage*100;
+        this.damage_speed = damage * 100;
 
         this.speed *= 0.8; // 被击中后，速度减半
     }

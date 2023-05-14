@@ -11,6 +11,7 @@ class Player(models.Model): # Player 类继承自 Model 类
 
     # 为了实现一键登录，需要额外存储一个 openid 来标识每一个 Player 绑定的 AcWing 账号
     openid = models.CharField(default="", max_length=256, blank=True, null=True)
+    score = models.IntegerField(default=1500)
 
 
     # 指定每个player数据展示在前台的数据

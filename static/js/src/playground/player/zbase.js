@@ -39,7 +39,8 @@ class Player extends AcGameObject {
     }
     start() {
         this.playground.player_count++;
-        this.playground.notice_board.write("已就绪：" + this.playground.player_count + "人");
+        console.log("this.playground.player_count = ", this.playground.player_count);
+        this.playground.notice_board.write("已就绪@：" + this.playground.player_count + "人");
         if (this.playground.player_count >= 3) {
             this.playground.state = "fighting";
             this.playground.notice_board.write("Fighting");
@@ -82,6 +83,7 @@ class Player extends AcGameObject {
         let damage = 0.01;
         let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
         this.fireballs.push(fireball);  // 火球数组中添加新火球
+        // this.fireball_coldtime = 0.1;  // 为什么无限活力没作用
         return fireball;
     }
     destroy_fireball(uuid) {  // 火球消失
@@ -216,7 +218,15 @@ class Player extends AcGameObject {
         this.move_length = 0;   //闪现完停下来
 
     }
+    update_win() {
+        // 竞赛状态，且只有一名玩家，且改名玩家就是我，则胜利
+        if (this.playground.state === "fighting" && this.character === "me" && this.playground.players.length === 1) {
+            this.playground.state = "over";
+            this.playground.score_board.win();
+        }
+    }
     update() {  // 更新函数
+        this.update_win();
         this.update_move();
         if (this.character === "me" && this.playground.state === "fighting") {
             this.update_coldtime();
@@ -300,6 +310,11 @@ class Player extends AcGameObject {
         }
     }
     on_destroy() {
+        // 我死亡，且游戏处于竞赛状态，则失败
+        if (this.character === "me" && this.playground.state === "fighting") {
+            this.playground.state = "over"
+            this.playground.score_board.lose();
+        }
         for (let i = 0; i < this.playground.players.length; i++) {
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);

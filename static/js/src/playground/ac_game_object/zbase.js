@@ -8,7 +8,7 @@ class AcGameObject {
     }
     create_uuid() {  // 创建唯一编号
         let res = "";
-        for (let i = 0; i < 8; i ++ ) {
+        for (let i = 0; i < 8; i++) {
             let x = parseInt(Math.floor(Math.random() * 10));   //[0, 10)
             res += x;
         }
@@ -17,6 +17,8 @@ class AcGameObject {
     start() {  // 第一帧执行一次
     }
     update() {  // 每一帧均会执行一次
+    }
+    late_update() { //每一帧均会执行一次，且在所有 update 执行完后才执行
     }
     on_destroy() {  // 在被销毁前执行一次
     }
@@ -47,6 +49,12 @@ let AC_GAME_ANIMATION = function (timestamp) {
             obj.update();
         }
     }
+
+    for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {  // 在调用完其他功能后，最后渲染的部分
+        let obj = AC_GAME_OBJECTS[i];
+        obj.late_update();
+    }
+
     last_timestamp = timestamp;
     requestAnimationFrame(AC_GAME_ANIMATION);
 }

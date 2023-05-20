@@ -1,5 +1,5 @@
 # 一个伟大的史诗级巨著！！！
-> 目前可登录的网站：https://app5427.acapp.acwing.com.cn
+> 目前可登录的网站：https://app5427.acapp.acwing.com.cn/game
 > 自己的网站还在ICP备案审核。。。
 
 ### 2. 配置docker、git环境与项目创建
